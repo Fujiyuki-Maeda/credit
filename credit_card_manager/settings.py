@@ -88,6 +88,11 @@ USE_TZ = True
 STATIC_URL = "static/"
 
 import os
+# 開発中に使用するstaticフォルダの場所 (引越し元)
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+
+# collectstaticコマンドで全ての静的ファイルが集められる場所 (引越し先)
+# PythonAnywhereなどの本番環境で必須
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
