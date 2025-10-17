@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %} {# static を使うために追加 #}
+{% block title %}月次レポート{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">月次レポート</h1>
+<div class="mb-3">
+    <a href="{% url 'records:record_list' %}" class="btn btn-secondary">履歴一覧に戻る</a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-center">
+            <div class="col-auto">
+                <label for="year" class="col-form-label">対象年月:</label>
+            </div>
+            <div class="col-auto">
+                <select name="year" id="year" class="form-select">
+                    {% for y in available_years %}
+                        <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}年</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <select name="month" id="month" class="form-select">
+                    {% for m in available_months %}
+                        <option value="{{ m }}" {% if m == selected_month %}selected{% endif %}>{{ m }}月</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">表示</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">
+                <h3>{{ selected_year }}年{{ selected_month }}月 カード会社別合計</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>カード会社</th>
+                                <th class="text-end">件数</th>
+                                <th class="text-end">合計金額</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in summary_data %}
+                            <tr>
+                                <td>{{ item.card__name }}</td>
+                                <td class="text-end">{{ item.total_count }}</td>
+                                <td class="text-end">¥{{ item.total_amount|floatformat:0 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center">この年月のデータはありません。</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">
+                <h3>支出割合</h3>
+            </div>
+            <div class="card-body d-flex justify-content-center align-items-center" style="min-height: 400px;">
+                {% if chart_data %}
+                    <canvas id="paymentDonutChart"></canvas>
+                {% else %}
+                    <p class="text-muted">表示するデータがありません。</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ chart_labels|json_script:"chart-labels" }}
+{{ chart_data|json_script:"chart-data" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 埋め込まれたJSONデータを安全に読み込む
+    const chartLabels = JSON.parse(document.getElementById('chart-labels').textContent);
+    const chartData = JSON.parse(document.getElementById('chart-data').textContent);
+
+    // データがなければ何もしない
+    if (chartData.length === 0) {
+        return;
+    }
+
+    const ctx = document.getElementById('paymentDonutChart').getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: '合計金額',
+                data: chartData,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(153, 102, 255, 0.7)',
+                    'rgba(255, 159, 64, 0.7)'
+                ],
+                borderColor: '#343a40',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: '#dee2e6'
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'カード会社別 金額割合',
+                    color: '#dee2e6',
+                    font: {
+                        size: 16
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

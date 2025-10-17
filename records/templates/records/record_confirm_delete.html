@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>削除の確認</title>
+</head>
+<body>
+    <h1>削除の確認</h1>
+    <p>「{{ object }}」を本当に削除しますか？</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">はい、削除します</button>
+    </form>
+    
+    <br>
+    <a href="{% url 'records:record_list' %}">キャンセルして一覧に戻る</a>
+</body>
+</html>

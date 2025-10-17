@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}全件削除の確認{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h1 class="h3 mb-0">全件削除の確認</h1>
+            </div>
+            <div class="card-body">
+                <p class="card-text fs-5"><strong>本当に全ての利用履歴を削除しますか？</strong></p>
+                <p class="text-danger">この操作は取り消すことができません。</p>
+                <p class="card-text">新しいCSVファイルをインポートする前などに実行してください。</p>
+                
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">はい、全て削除します</button>
+                    <a href="{% url 'records:record_list' %}" class="btn btn-secondary ms-2">キャンセル</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

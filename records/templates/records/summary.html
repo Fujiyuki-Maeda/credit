@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block title %}日次レポート・照合{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">日次レポート・照合</h1>
+<div class="mb-3">
+    <a href="{% url 'records:record_list' %}" class="btn btn-secondary">履歴一覧に戻る</a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>クレジット・その他決済 照合</h3>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3 align-items-center mb-3">
+                    <div class="col-auto">
+                        <label for="date" class="col-form-label">日付を選択:</label>
+                    </div>
+                    <div class="col-auto">
+                        <input type="date" id="date" name="date" value="{{ target_date|date:'Y-m-d' }}" class="form-control">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">表示</button>
+                    </div>
+                </form>
+
+                <h4 class="mt-4">{{ target_date|date:"Y年m月d日" }} の集計結果</h4>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>カード会社</th>
+                                    <th>件数</th>
+                                    <th>打込合計 (A)</th>
+                                    <th>レジ合計 (B)</th>
+                                    <th>差額 (B - A)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in summary_data %}
+                                <tr class="summary-row">
+                                    <td class="text-start">{{ item.card__name }}</td>
+                                    <td>{{ item.total_count }}</td>
+                                    <td class="input-total text-end">{{ item.total_amount }}</td>
+                                    <td>
+                                        <input type="number" class="form-control pos-input" name="pos_total_{{ item.card_id }}" value="{{ item.pos_total }}" placeholder="POSの金額">
+                                    </td>
+                                    <td class="difference text-end fw-bold">0</td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="5" class="text-center">この日付のデータはありません。</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <button type="submit" name="save_pos_total" class="btn btn-success mt-3">レジ合計を保存</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h3>金券枚数入力</h3>
+            </div>
+            <div class="card-body">
+                {% for item in voucher_forms %}
+                <form method="post" class="mb-3">
+                    {% csrf_token %}
+                    <div class="row g-2 align-items-center">
+                        <div class="col-auto">
+                            <label class="col-form-label fw-bold">{{ item.label }}</label>
+                        </div>
+                        <div class="col">
+                            {{ item.form.count }}
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" name="save_voucher_{{ item.label }}" class="btn btn-outline-success">保存</button>
+                        </div>
+                    </div>
+                </form>
+                {% endfor %}
+                <hr>
+                <div class="d-flex justify-content-between fs-5 fw-bold">
+                    <span>合計</span>
+                    <span>{{ total_vouchers }} 枚</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 差額を計算して表示する関数
+        function calculateDifference(row) {
+            const inputTotalEl = row.querySelector('.input-total');
+            const posInputEl = row.querySelector('.pos-input');
+            const differenceEl = row.querySelector('.difference');
+            
+            // 値を取得（空の場合は0として扱う）
+            const inputTotal = parseFloat(inputTotalEl.textContent) || 0;
+            const posTotal = parseFloat(posInputEl.value) || 0;
+            const diff = posTotal - inputTotal;
+            
+            // 差額を表示し、色を付ける（Bootstrapのクラスを使用）
+            differenceEl.textContent = diff.toLocaleString(); // 3桁区切りにする
+            differenceEl.classList.remove('text-danger', 'text-success');
+            if (diff < 0) {
+                differenceEl.classList.add('text-danger'); // マイナスは赤
+            } else if (diff > 0) {
+                differenceEl.classList.add('text-success'); // プラスは緑
+            }
+        }
+
+        // ページ読み込み時に一度、全行の差額を計算する
+        document.querySelectorAll('.summary-row').forEach(row => {
+            calculateDifference(row);
+        });
+
+        // 各入力欄にイベントを設定
+        document.querySelectorAll('.pos-input').forEach(input => {
+            input.addEventListener('input', function() {
+                const row = this.closest('.summary-row');
+                calculateDifference(row);
+            });
+        });
+    });
+</script>
+{% endblock %}
