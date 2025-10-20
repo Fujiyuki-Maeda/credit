@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}経理用CSVエクスポート{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h1 class="h3 mb-0">経理用CSVエクスポート</h1>
+            </div>
+            <div class="card-body">
+                <p class="card-text">エクスポートしたいデータの期間を選択してください。</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-5">
+                            <label for="start_date" class="form-label">開始日</label>
+                            <input type="date" name="start_date" id="start_date" class="form-control" required>
+                        </div>
+                        <div class="col-md-5">
+                            <label for="end_date" class="form-label">終了日</label>
+                            <input type="date" name="end_date" id="end_date" class="form-control" required>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-success w-100">エクスポート</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'records:record_list' %}" class="btn btn-secondary">履歴一覧に戻る</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

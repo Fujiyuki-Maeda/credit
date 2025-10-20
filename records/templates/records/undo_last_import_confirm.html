@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}インポートの取り消し確認{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h1 class="h3 mb-0">インポートの取り消し確認</h1>
+            </div>
+            <div class="card-body">
+                {% if last_batch %}
+                    <p class="fs-5"><strong>本当に直前のインポートを取り消しますか？</strong></p>
+                    <p>以下のインポート処理で追加された <strong>{{ last_batch.records.count }}件</strong> のデータが削除されます。</p>
+                    <ul>
+                        <li><strong>インポート日時:</strong> {{ last_batch.timestamp|date:"Y-m-d H:i" }}</li>
+                    </ul>
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning">はい、取り消します</button>
+                        <a href="{% url 'records:record_list' %}" class="btn btn-secondary ms-2">キャンセル</a>
+                    </form>
+                {% else %}
+                    <p>取り消すことができるインポート履歴がありません。</p>
+                    <a href="{% url 'records:record_list' %}" class="btn btn-secondary mt-3">履歴一覧に戻る</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
