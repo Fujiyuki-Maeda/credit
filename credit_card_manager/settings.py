@@ -1,21 +1,28 @@
+import os
 from pathlib import Path
-from django.core.management.utils import get_random_secret_key
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-try:
-    from .local_settings import *
-    DEBUG = True
-    FRONTEND_URL = 'http://127.0.0.1:8000/'
-    ALLOWED_HOSTS = []
+# -----------------------------------------------------------------
+# ▼▼▼ SECRET_KEYと本番設定 ▼▼▼
+# -----------------------------------------------------------------
 
-except ImportError:
-    DEBUG = False
-    SECRET_KEY = get_random_secret_key()
-    ALLOWED_HOSTS = ['.pythonanywhere.com']
-    
+# 警告: このキーは絶対に公開しないでください！
+# 先ほどPythonAnywhereのコンソールで生成したキーを貼り付けます
+SECRET_KEY = '8*itp67le()fg8ko!h%u_%i9qyy$2cy30-0_uli_74s)v=ih+w'
+
+# 本番環境ではDEBUGは必ずFalseにします
+DEBUG = False
+
+# あなたのサイトのドメイン名を指定します
+ALLOWED_HOSTS = ['creditwakayama.pythonanywhere.com']
+
+# -----------------------------------------------------------------
+# ▲▲▲ ここまでが重要な変更点 ▲▲▲
+# -----------------------------------------------------------------
+
 # Application definition
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -41,13 +48,14 @@ ROOT_URLCONF = "credit_card_manager.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": ['templates'],
+        "DIRS": [os.path.join(BASE_DIR, 'templates')],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
+                'django.template.context_processors.debug',
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
+                "django.contrib.messages.middleware.MessageMiddleware",
             ],
         },
     },
@@ -63,36 +71,19 @@ DATABASES = {
 }
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-LANGUAGE_CODE = "ja-jp"
-
+LANGUAGE_CODE = "ja"
 TIME_ZONE = "Asia/Tokyo"
-
 USE_I18N = True
-
 USE_TZ = True
 
 STATIC_URL = "static/"
-
-import os
-# 開発中に使用するstaticフォルダの場所 (引越し元)
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-
-# collectstaticコマンドで全ての静的ファイルが集められる場所 (引越し先)
-# PythonAnywhereなどの本番環境で必須
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
