@@ -1,28 +1,14 @@
 import os
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# -----------------------------------------------------------------
-# ▼▼▼ SECRET_KEYと本番設定 ▼▼▼
-# -----------------------------------------------------------------
-
 # 警告: このキーは絶対に公開しないでください！
-# 先ほどPythonAnywhereのコンソールで生成したキーを貼り付けます
 SECRET_KEY = '8*itp67le()fg8ko!h%u_%i9qyy$2cy30-0_uli_74s)v=ih+w'
 
-# 本番環境ではDEBUGは必ずFalseにします
 DEBUG = False
-
-# あなたのサイトのドメイン名を指定します
 ALLOWED_HOSTS = ['creditwakayama.pythonanywhere.com']
 
-# -----------------------------------------------------------------
-# ▲▲▲ ここまでが重要な変更点 ▲▲▲
-# -----------------------------------------------------------------
-
-# Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -55,7 +41,8 @@ TEMPLATES = [
                 'django.template.context_processors.debug',
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.middleware.MessageMiddleware",
+                # ▼▼▼ ここの行を修正しました ▼▼▼
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
