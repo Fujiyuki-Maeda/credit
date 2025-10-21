@@ -12,14 +12,17 @@ class DailyCheck(models.Model):
     """日次照合の結果を保存するモデル"""
     date = models.DateField("日付")
     card = models.ForeignKey(Card, on_delete=models.CASCADE, verbose_name="カード会社")
-    pos_total = models.DecimalField("レジ合計金額", max_digits=10, decimal_places=0)
+
+    # ▼▼▼ 以下の3つのフィールドに変更 ▼▼▼
+    pos_total_1 = models.CharField("13:10 POS合計", max_length=100, null=True, blank=True)
+    pos_total_2 = models.CharField("17:10 POS合計", max_length=100, null=True, blank=True)
+    pos_total_3 = models.CharField("21:30 POS合計", max_length=100, null=True, blank=True)
 
     class Meta:
-        # 同じ日に同じカード会社のデータが重複しないように設定
         unique_together = ('date', 'card')
 
     def __str__(self):
-        return f"{self.date} - {self.card.name}: {self.pos_total}"
+        return f"{self.date} - {self.card.name}"
 
 class VoucherCount(models.Model):
     """点検時間ごとの金券枚数を保存するモデル"""

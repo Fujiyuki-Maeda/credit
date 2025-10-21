@@ -15,50 +15,49 @@
             </div>
             <div class="card-body">
                 <form method="get" class="row g-3 align-items-center mb-3">
-                    <div class="col-auto">
-                        <label for="date" class="col-form-label">日付を選択:</label>
-                    </div>
-                    <div class="col-auto">
-                        <input type="date" id="date" name="date" value="{{ target_date|date:'Y-m-d' }}" class="form-control">
-                    </div>
-                    <div class="col-auto">
-                        <button type="submit" class="btn btn-primary">表示</button>
-                    </div>
+                    <div class="col-auto"><label for="date" class="col-form-label">日付を選択:</label></div>
+                    <div class="col-auto"><input type="date" id="date" name="date" value="{{ target_date|date:'Y-m-d' }}" class="form-control"></div>
+                    <div class="col-auto"><button type="submit" class="btn btn-primary">表示</button></div>
                 </form>
 
                 <h4 class="mt-4">{{ target_date|date:"Y年m月d日" }} の集計結果</h4>
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>カード会社</th>
-                                    <th>件数</th>
-                                    <th>打込合計 (A)</th>
-                                    <th>レジ合計 (B)</th>
-                                    <th>差額 (B - A)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in summary_data %}
-                                <tr class="summary-row">
-                                    <td class="text-start">{{ item.card__name }}</td>
-                                    <td>{{ item.total_count }}</td>
-                                    <td class="input-total text-end">{{ item.total_amount }}</td>
-                                    <td>
-                                        <input type="number" class="form-control pos-input" name="pos_total_{{ item.card_id }}" value="{{ item.pos_total }}" placeholder="POSの金額">
-                                    </td>
-                                    <td class="difference text-end fw-bold">0</td>
-                                </tr>
-                                {% empty %}
-                                <tr><td colspan="5" class="text-center">この日付のデータはありません。</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <button type="submit" name="save_pos_total" class="btn btn-success mt-3">レジ合計を保存</button>
-                </form>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>カード会社</th>
+                                <th>件数</th>
+                                <th>打込合計 (A)</th>
+                                <th>レジ合計 (B)</th>
+                                <th>差額 (B - A)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in summary_data %}
+                            <tr class="summary-row">
+                                <td class="text-start">{{ item.card__name }}</td>
+                                <td>{{ item.total_count }}</td>
+                                <td class="input-total text-end">{{ item.total_amount }}</td>
+                                <td>
+                                    <input type="text" class="form-control pos-input-display text-end" 
+                                           value="{{ item.pos_total_sum }}"
+                                           data-bs-toggle="modal" 
+                                           data-bs-target="#posTotalModal"
+                                           data-card-id="{{ item.card_id }}"
+                                           data-card-name="{{ item.card__name }}"
+                                           data-t1="{{ item.pos_total_1|default_if_none:'' }}"
+                                           data-t2="{{ item.pos_total_2|default_if_none:'' }}"
+                                           data-t3="{{ item.pos_total_3|default_if_none:'' }}"
+                                           readonly>
+                                </td>
+                                <td class="difference text-end fw-bold">0</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center">この日付のデータはありません。</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -93,45 +92,131 @@
             </div>
         </div>
     </div>
+    </div>
+
+<div class="modal fade" id="posTotalModal" tabindex="-1" aria-labelledby="posTotalModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="posTotalModalLabel">レジ合計の入力</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="posTotalForm">
+                    <input type="hidden" id="modalCardId" name="card_id">
+                    <div class="mb-3">
+                        <label for="modalPosTotal1" class="form-label">13:10 点検</label>
+                        <input type="text" class="form-control modal-input" id="modalPosTotal1" name="pos_total_1" placeholder="例: 1000 or 1000+500">
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalPosTotal2" class="form-label">17:10 点検</label>
+                        <input type="text" class="form-control modal-input" id="modalPosTotal2" name="pos_total_2" placeholder="点検後の取引額のみ入力">
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalPosTotal3" class="form-label">21:30 点検</label>
+                        <input type="text" class="form-control modal-input" id="modalPosTotal3" name="pos_total_3" placeholder="点検後の取引額のみ入力">
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between fs-5 fw-bold">
+                        <span>合計</span>
+                        <span id="modalTotalSum">0</span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                <button type="button" class="btn btn-primary" id="savePosTotal">保存</button>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // 差額を計算して表示する関数
-        function calculateDifference(row) {
-            const inputTotalEl = row.querySelector('.input-total');
-            const posInputEl = row.querySelector('.pos-input');
-            const differenceEl = row.querySelector('.difference');
-            
-            // 値を取得（空の場合は0として扱う）
-            const inputTotal = parseFloat(inputTotalEl.textContent) || 0;
-            const posTotal = parseFloat(posInputEl.value) || 0;
-            const diff = posTotal - inputTotal;
-            
-            // 差額を表示し、色を付ける（Bootstrapのクラスを使用）
-            differenceEl.textContent = diff.toLocaleString(); // 3桁区切りにする
-            differenceEl.classList.remove('text-danger', 'text-success');
-            if (diff < 0) {
-                differenceEl.classList.add('text-danger'); // マイナスは赤
-            } else if (diff > 0) {
-                differenceEl.classList.add('text-success'); // プラスは緑
-            }
+document.addEventListener('DOMContentLoaded', function() {
+    // 差額を計算して表示する関数
+    function calculateDifference(row) {
+        const inputTotalEl = row.querySelector('.input-total');
+        const posInputEl = row.querySelector('.pos-input-display'); // メイン画面の表示用input
+        const differenceEl = row.querySelector('.difference');
+        
+        const inputTotal = parseFloat(inputTotalEl.textContent) || 0;
+        const posTotal = parseFloat(posInputEl.value) || 0;
+        const diff = posTotal - inputTotal;
+        
+        differenceEl.textContent = diff.toLocaleString();
+        differenceEl.classList.remove('text-danger', 'text-success');
+        if (diff < 0) {
+            differenceEl.classList.add('text-danger');
+        } else if (diff > 0) {
+            differenceEl.classList.add('text-success');
         }
+    }
 
-        // ページ読み込み時に一度、全行の差額を計算する
-        document.querySelectorAll('.summary-row').forEach(row => {
-            calculateDifference(row);
+    // ページ読み込み時に一度、全行の差額を計算する
+    document.querySelectorAll('.summary-row').forEach(row => {
+        calculateDifference(row);
+    });
+
+    const posTotalModal = document.getElementById('posTotalModal');
+    const form = document.getElementById('posTotalForm');
+    const modalInputs = form.querySelectorAll('.modal-input');
+    const modalTotalSumEl = document.getElementById('modalTotalSum');
+    let currentInputDisplay = null;
+
+    posTotalModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        currentInputDisplay = button;
+        
+        document.getElementById('posTotalModalLabel').textContent = button.dataset.cardName + ' のレジ合計を入力';
+        document.getElementById('modalCardId').value = button.dataset.cardId;
+        document.getElementById('modalPosTotal1').value = button.dataset.t1;
+        document.getElementById('modalPosTotal2').value = button.dataset.t2;
+        document.getElementById('modalPosTotal3').value = button.dataset.t3;
+        
+        updateModalSum();
+    });
+
+    modalInputs.forEach(input => input.addEventListener('input', updateModalSum));
+
+    function updateModalSum() {
+        let total = 0;
+        modalInputs.forEach(input => {
+            try {
+                if (input.value) total += eval(input.value.replace(/[^0-9+]/g, ''));
+            } catch (e) { /* 計算エラーは無視 */ }
         });
+        modalTotalSumEl.textContent = total.toLocaleString();
+    }
 
-        // 各入力欄にイベントを設定
-        document.querySelectorAll('.pos-input').forEach(input => {
-            input.addEventListener('input', function() {
-                const row = this.closest('.summary-row');
+    document.getElementById('savePosTotal').addEventListener('click', function() {
+        const formData = new FormData(form);
+        // GETパラメータから日付を取得してフォームデータに追加
+        const urlParams = new URLSearchParams(window.location.search);
+        formData.append('date', urlParams.get('date'));
+        
+        fetch("{% url 'records:summary' %}?" + urlParams.toString(), {
+            method: 'POST',
+            headers: {'X-CSRFToken': '{{ csrf_token }}'},
+            body: new URLSearchParams(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const totalSum = parseInt(modalTotalSumEl.textContent.replace(/,/g, ''), 10);
+                currentInputDisplay.value = totalSum;
+
+                // ▼▼▼ ここに差額の再計算命令を追加しました ▼▼▼
+                const row = currentInputDisplay.closest('.summary-row');
                 calculateDifference(row);
-            });
+                
+                bootstrap.Modal.getInstance(posTotalModal).hide();
+            } else {
+                alert('保存に失敗しました。');
+            }
         });
     });
+});
 </script>
 {% endblock %}
